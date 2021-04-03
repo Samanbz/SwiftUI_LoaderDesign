@@ -1,0 +1,88 @@
+import SwiftUI
+
+extension Color {
+    static let ringColorStart: Color = Color(r: 255, g: 186, b: 8)
+    static let ringColorEnd: Color = Color(r: 244, g: 100, b: 6)
+    static let bgColorStart: Color = Color(r: 32, g: 32, b: 42)
+    static let bgColorEnd: Color = Color(r: 29, g: 29, b: 37)
+    static let bgColor: Color = Color(r: 24, g: 25, b: 33)
+    
+    init(r: Double, g: Double, b: Double) {
+        self.init(red: r/255, green: g/255, blue: b/255)
+    }
+}
+struct CircleLoaderView: View {
+    let BGGRadient = LinearGradient(gradient: .init(colors: [Color.bgColorStart, Color.bgColorEnd]), startPoint: .leading, endPoint: .bottomTrailing)
+    let RingGradient = LinearGradient(gradient: .init(colors: [Color.ringColorStart, Color.ringColorEnd]), startPoint: .trailing, endPoint: .bottomLeading)
+    
+    let ringRotations: Double = 2
+    let animationDuration: Double = 1
+    
+    @State private var circleStart: CGFloat = 0.17
+    @State private var circleEnd: CGFloat = 0.32
+    @State private var Rotation: Angle = Angle.degrees(0)
+    
+    var body: some View {
+        ZStack {
+            Color.bgColor
+                .edgesIgnoringSafeArea(.all)
+            
+            ZStack {
+                Circle()
+                    .stroke(style: StrokeStyle(lineWidth: 20))
+                    .fill(BGGRadient)
+                Circle()
+                    .trim(from: circleStart, to: circleEnd)
+                    .stroke(style: StrokeStyle(lineWidth: 17, lineCap: .round))
+                    .fill(RingGradient)
+                    .rotationEffect(Rotation)
+                
+            }.frame(width: 200, height: 200, alignment: .center)
+            .onAppear {
+                animate()
+                Timer.scheduledTimer(withTimeInterval: (ringRotations * animationDuration * 1.6) + animationDuration, repeats: true) { timer in
+                    animate()
+                }
+            }
+        }
+    }
+    
+    func animate() {
+        withAnimation(.spring(response: animationDuration)) {
+            self.Rotation += .degrees(-80)
+        }
+        
+        Timer.scheduledTimer(withTimeInterval: animationDuration/6 , repeats: false) { timer in
+            withAnimation(.spring(response: animationDuration)) {
+                self.circleEnd = 0.22
+            }
+        }
+            
+        Timer.scheduledTimer(withTimeInterval: animationDuration, repeats: false) { timer in
+            withAnimation(.easeInOut(duration: ringRotations * animationDuration)) {
+                self.Rotation += .degrees((ringRotations * 360) + 320)
+            }
+        }
+        
+        Timer.scheduledTimer(withTimeInterval: animationDuration, repeats: false) { timer in
+            withAnimation(.easeInOut(duration: (ringRotations * animationDuration) / 4)) {
+                self.circleEnd = 0.75
+            }
+        }
+        
+        Timer.scheduledTimer(withTimeInterval: (ringRotations * animationDuration) * 1.2, repeats: false) { timer in
+            withAnimation(.spring(response: animationDuration)) {
+                self.circleStart = 0.7
+            }
+        }
+        
+        Timer.scheduledTimer(withTimeInterval: (ringRotations * animationDuration) * 1.7, repeats: false) { timer in
+            withAnimation(.easeInOut(duration: animationDuration)) {
+                Rotation += .degrees(-240)
+                self.circleStart = 0.17
+                self.circleEnd = 0.52
+                
+            }
+        }
+    }
+}
